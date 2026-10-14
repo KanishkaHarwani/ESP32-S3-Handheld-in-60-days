@@ -1,69 +1,73 @@
 # Hardware
 
-Everything used across the three phases, what it's for, and what's still needed. If you're just starting Phase 1, skip to [Get now](#get-now--phase-1).
+Everything used across the three phases, what it's for, and what's still needed.
 
-## Primary board
+## Boards
 
-**Seeed Xiao ESP32S3** (x3) — this is the board the whole repo is built around. Other boards you own (ESP32 DevKit, WROOM, ESP8266, Teensy, Nano 33 BLE Sense, Raspberry Pi models) are not required for the core path, but are noted below where they're useful as optional side-exploration.
+| Board | Used in | Notes |
+| ----- | ------- | ----- |
+| Seeed Xiao ESP32S3 (x3, owned) | Phase 1, early Phase 2 | Great for learning, but only ~11 usable GPIOs: not enough for TFT + 6 buttons + SD |
+| **ESP32-S3 DevKitC-1, N16R8 (to buy)** | Late Phase 2, Phase 3 | 16 MB flash + 8 MB PSRAM, plenty of free pins; order before Week 3 |
 
-## Owned — core to this repo
+Other boards you own (ESP32 DevKit 32E, WROOM, ESP8266, Teensy 3.5/4.1, Nano 33 BLE Sense, Raspberry Pis) are not part of the core path.
+
+## Owned and used
 
 | Item | Used in | Notes |
-|---|---|---|
-| Jumper wires | All phases | |
-| Breadboard (large + small) | All phases | |
-| Resistor set | Phase 1+ | |
-| LED set (R, G, B, White) | Phase 1 | |
-| Buzzer | Phase 1 | |
-| Pushbutton set | Phase 1 | |
-| Digital multimeter | Phase 1+ | Debugging habit, not optional |
-| Temp & humidity sensor (I²C) | Phase 1–2 | First I²C peripheral |
-| 2.8" TFT display, 240×320 (SPI) | Phase 2 | First display, framebuffer concepts |
-| SD card module + 32GB cards (x2) | Phase 2–3 | Data logging |
-| Addressable LED strip, 1m | Phase 2 (optional) | Status indicator on final dashboard |
-| BNO085 IMU (Adafruit + generic) | Phase 2–3 (optional) | Motion data as a dashboard input |
+| ---- | ------- | ----- |
+| Jumper wires, breadboards (large + small) | All phases | |
+| Resistor set | Phase 1+ | pull-ups, LED, battery divider |
+| LEDs (R, G, B, White), buzzer, pushbuttons | Phase 1, 3 | buttons become the 6 handheld inputs |
+| Digital multimeter | Phase 1+ | essential for power/charging checks |
+| Temp & humidity sensor (I2C) | Phase 1-3 | dashboard app input |
+| 2.8" TFT, 240x320 (SPI) | Phase 2-3 | handheld display |
+| SD card module + 32 GB cards (x2) | Phase 2-3 | logging, save files |
+| BNO085 IMU | Phase 2-3 (optional) | tilt controls / motion data |
+| Addressable LED strip, 1 m | optional | status light |
 
-## Owned — optional / other-repo material
+## To get
 
-Not used in the core path, but you already own these — fine to explore on the side or save for a future robotics-flavored repo:
+**Phase 1:** nothing required. Optional: 2x 10k potentiometers, a data-capable USB cable.
 
-ESP32 DevKit 32E (x2), ESP32 WROOM (x2), ESP8266, Teensy 3.5, Teensy 4.1, Arduino Nano 33 BLE Sense, Raspberry Pi 3B, Raspberry Pi 5, Raspberry Pi Zero W, Rpi Camera V2.1, Arducam Camera Module 3, Xiao ESP32S3 CAM + hat, Xiao camera sensors, Xiao antennas, Screwdriver set.
+**Phase 2 (order by 2 Nov):**
+- ESP32-S3 DevKitC-1 N16R8
+- 3.3 V buck converter module, 12 V -> 5 V converter (power lessons)
+- Small prototyping perfboards
 
-> Raspberry Pi 5 has a natural role in Phase 3 as an optional network host (dashboard backend, MQTT broker, or data sink) — see phase 3 README when you get there.
+**Phase 3 (handheld):**
+- 3.7 V LiPo, 1000-2000 mAh, **with protection circuit**
+- Charger module with USB-C and load sharing (power path) so the device can run while charging; avoid a bare TP4056 powering the board directly
+- Slide power switch
+- 2x 100k resistors (battery divider), 10k pull-ups (optional), 100 nF caps (optional button debounce)
+- 6 tactile buttons (D-pad Up/Down/Left/Right + A + B)
 
-## Get now — Phase 1
+**Nice to have:** DS3231 RTC, BME280, rotary encoder, single WS2812 LED, small I2S amp + speaker.
 
-You already have everything Phase 1 needs. Optional additions:
+## Proposed pin map (ESP32-S3 DevKitC-1 N16R8)
 
-- 2x **10kΩ potentiometer** — analog input lesson
-- A **data-capable USB cable** dedicated to the Xiao ESP32S3
+Verify against your exact board's pinout before wiring.
 
-## Get for Phase 2 & 3
+| Function | GPIO |
+| -------- | ---- |
+| TFT SCK / MOSI | 12 / 11 |
+| TFT CS / DC / RST | 10 / 9 / 8 |
+| TFT backlight (PWM) | 7 |
+| SD MISO / CS (shares SPI bus) | 13 / 21 |
+| Buttons Up / Down / Left / Right | 4 / 5 / 6 / 15 |
+| Buttons A / B | 16 / 17 |
+| I2C SDA / SCL | 41 / 42 |
+| Battery ADC (via 100k/100k divider) | 1 |
+| Buzzer | 40 |
 
-**Power**
-- 12V → 5V converter
-- 3.3V buck converter module(s)
+Pins to avoid on this board: 0, 3, 45, 46 (strapping), 19 / 20 (USB), 26-32 (flash), 33-37 (octal PSRAM), 48 (onboard RGB LED).
 
-**Display**
-- E-ink display (any SPI module, ~2–3")
+## Power notes
 
-**Xiao breadboard setup** (cheaper alternative to the official expansion board — also reusable across your other boards)
-- 2x 7-pin female headers (solder to Xiao's castellated edges) — or a plain Xiao-to-breadboard carrier PCB
-- DS3231 RTC module (with CR2032 battery) — timestamps for dashboard data
-- A few small prototyping perfboards
+- Buttons wire between GPIO and GND using internal pull-ups.
+- A 100k/100k divider turns 4.2 V (full cell) into 2.1 V, safe for the ADC.
+- Never charge a LiPo without a proper charger IC; use a protected cell and check polarity twice.
+- Measure with the multimeter before connecting the battery to the board for the first time.
 
-**Sensors** (pick based on what you want your dashboard to show)
-- LDR (light sensor)
-- BME280 / BMP280 (pressure, temp, optionally humidity) — second I²C sensor
-- Soil moisture sensor
-- Rotary encoder with push switch — menu navigation on the display
-- IR receiver + remote — protocol decoding lesson
-- Capacitive touch sensor (TTP223)
+## Deliberately skipped
 
-**Output devices**
-- Single WS2812 addressable RGB LED breakout — smaller-scale version of your LED strip
-- TM1637 4-digit 7-segment display — different display-driving paradigm than TFT/E-ink
-
-## Deliberately skipped for this repo
-
-Motors, servos, steppers, H-bridge drivers, ultrasonic distance sensors, PIR motion sensors, gas/MQ sensors — none of these serve a connectivity-and-dashboard-focused repo. Good candidates for a future robotics/automation repo instead.
+Motors, servos, steppers, ultrasonic, PIR and gas sensors. Good candidates for a future robotics repo.

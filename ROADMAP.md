@@ -1,65 +1,97 @@
 # Roadmap
 
-Full lesson-by-lesson breakdown for all 3 phases. Check items off as you complete them — this file doubles as your progress tracker (no separate PROGRESS.md/CHANGELOG.md needed).
+Lesson-by-lesson plan for the 60-day build. Check items off as you complete them; this file is the progress tracker. Planned start **2026-10-19**, planned finish **2026-12-17**. If you slip, edit the dates and add a one-line note under Progress.
 
 ---
 
-## Phase 1 — Foundations
+## Phase 1: Foundations (Weeks 1-2, 19 Oct - 1 Nov)
 
 Board: Xiao ESP32S3 · breadboard, LEDs, buttons, buzzer, temp/humidity sensor, multimeter
 
-- [ ] What is embedded systems programming — constraints, real-time, memory
-- [ ] Embedded C++: variables, types, structs/classes, pointers & references
+**Week 1 (19-25 Oct)**
+- [ ] What is embedded systems programming: constraints, real-time, memory
+- [ ] Embedded C++: variables, types, structs/classes, pointers and references
 - [ ] ESP32-S3 architecture: dual-core, memory map, peripherals overview
 - [ ] Toolchain: PlatformIO setup, project structure, build/upload/monitor
-- [ ] Git & GitHub: repo structure, commits, branches, `.gitignore` for firmware
+- [ ] Git and GitHub: repo structure, commits, branches, `.gitignore` for firmware
+- Demo: blink + serial "hello" committed
+
+**Week 2 (26 Oct - 1 Nov)**
 - [ ] GPIO: digital in/out, pushbutton + debounce, PWM/LED fade
-- [ ] UART: serial communication, `Serial` monitor as a debug tool
-- [ ] SPI: concept + wiring (prep for Phase 2 displays)
-- [ ] I²C: concept + wiring, device scanning, reading the temp/humidity sensor
-- [ ] Debugging basics: serial prints, wiring/power mistakes, using the multimeter
-- [ ] **Checkpoint project:** sensor reading → LED/buzzer feedback loop
+- [ ] UART: serial communication, serial monitor as a debug tool
+- [ ] SPI: concept + wiring (prep for the TFT)
+- [ ] I2C: concept + wiring, device scanning, reading the temp/humidity sensor
+- [ ] Debugging basics: serial prints, wiring/power mistakes, multimeter
+- [ ] **Checkpoint project:** sensor + buttons -> LED/buzzer/serial feedback loop
+- Demo: short video of the checkpoint
 
 ---
 
-## Phase 2 — Connectivity & Architecture
+## Phase 2: Connectivity & Architecture (Weeks 3-5, 2 - 22 Nov)
 
-Board: Xiao ESP32S3 · + TFT, E-ink display, SD card, buck converters
+Board: Xiao ESP32S3, then ESP32-S3 DevKitC-1 · TFT, SD card, buck converter
 
-- [ ] Displays and graphics: driving the TFT (SPI) — framebuffers, primitives, fonts
-- [ ] E-ink display: partial refresh, low-power display concepts
+> Order the DevKitC-1 by the start of Week 3 so it arrives before Phase 3.
+
+**Week 3 (2-8 Nov)**
+- [ ] Displays and graphics: driving the TFT over SPI, primitives, fonts, sprites
+- [ ] Draw a button-test screen (the first handheld UI slice)
 - [ ] Wi-Fi networking: station mode, connecting, reconnect handling
-- [ ] HTTP/HTTPS: making requests, TLS basics on embedded, certificates
-- [ ] REST APIs: calling a public API, structuring a simple endpoint
+
+**Week 4 (9-15 Nov)**
+- [ ] HTTP/HTTPS: requests, TLS basics on embedded, certificates
+- [ ] REST APIs: calling a public API
 - [ ] JSON: parsing/serializing (ArduinoJson), mapping API data to structs
-- [ ] FreeRTOS: tasks, scheduling, `vTaskDelay`, queues, why RTOS over one big loop
-- [ ] Software architecture: layering drivers vs. logic vs. UI
-- [ ] State machines: modeling app states (connecting → fetching → displaying → error)
-- [ ] Driver development: writing a thin driver for a sensor/peripheral
-- [ ] Debugging (intermediate): log levels, crash/backtrace basics, watchdog timers
-- [ ] Power: buck converters, powering display + MCU cleanly, brownout awareness
-- [ ] **Checkpoint project:** pull API data over WiFi, parse JSON, render on display, driven by a state machine
+- [ ] FreeRTOS: tasks, `vTaskDelay`, queues, why an RTOS over one big loop
+
+**Week 5 (16-22 Nov)**
+- [ ] Software architecture: layering drivers vs logic vs UI
+- [ ] State machines: connecting -> fetching -> displaying -> error
+- [ ] Driver development: write a thin driver for a sensor or the button module
+- [ ] Debugging (intermediate): log levels, backtraces, watchdog timers
+- [ ] **Checkpoint project:** API data over Wi-Fi -> JSON -> TFT, driven by a state machine
+- Demo: photo/video of live data on screen
 
 ---
 
-## Phase 3 — Smart Dashboard (Final Project)
+## Phase 3: The Handheld (Weeks 6-9, 23 Nov - 17 Dec)
 
-- [ ] Project architecture: data sources, display layout, update cadence
-- [ ] Integrate Phase 1+2 pieces: sensors + network data + display, task-managed via FreeRTOS
-- [ ] OTA updates: implementing firmware-over-the-air, versioning, rollback safety
-- [ ] Production firmware practices: error handling, config management, logging, watchdogs, power-loss recovery
-- [ ] Optional: local data logging to SD card as backup/history
-- [ ] Debugging & polish: stress-testing, WiFi drop, API failure, sensor disconnect
-- [ ] Documentation: final README/build log for the repo
+Board: ESP32-S3 DevKitC-1 (N16R8) · TFT, 6 buttons, LiPo, charger, SD card
+
+**Week 6 (23-29 Nov): Hardware bring-up**
+- [ ] Wire the final pin map (see `hardware/README.md`), button test on all 6 inputs
+- [ ] Battery voltage divider -> ADC, percentage curve for a LiPo
+- [ ] Safe charging + power path on the breadboard (protected cell, proper charger module)
+- [ ] Backlight PWM and double-buffered drawing (use PSRAM)
+
+**Week 7 (30 Nov - 6 Dec): Launcher and apps**
+- [ ] App framework: launcher -> app -> back, input events (press/hold/release)
+- [ ] App 1: Snake
+- [ ] App 2: Wi-Fi scanner
+- [ ] App 3: **Smart Dashboard** (sensor + API data, reuse Phase 2 code)
+- [ ] App 4: stopwatch + system/battery info
+
+**Week 8 (7-13 Dec): Production practices**
+- [ ] OTA updates: versioning, rollback safety
+- [ ] Power management: idle dimming, deep sleep, wake on button
+- [ ] Error handling, config storage (NVS), logging, watchdogs, power-loss recovery
+- [ ] Optional: SD card logging/save files
+
+**Week 9 (14-17 Dec): Polish and ship**
+- [ ] Stress tests: Wi-Fi drop, API failure, sensor disconnect, low battery
+- [ ] Final README/build log with photos and wiring diagram
+- [ ] Optional stretch: KiCad PCB, 3D-printed case, IMU tilt controls, buzzer/audio
+- Demo: final video of the handheld running
 
 ---
 
 ## Progress
 
-| Phase | Status |
-|---|---|
-| Phase 1 — Foundations | Not started |
-| Phase 2 — Connectivity & Architecture | Not started |
-| Phase 3 — Smart Dashboard | Not started |
+| Phase | Planned dates | Status |
+| ----- | ------------- | ------ |
+| Phase 1: Foundations | 19 Oct - 1 Nov | Not started |
+| Phase 2: Connectivity & Architecture | 2 - 22 Nov | Not started |
+| Phase 3: The Handheld | 23 Nov - 17 Dec | Not started |
 
-Update the table above as you complete each phase.
+Schedule notes:
+- (add a dated line here whenever the plan shifts)
