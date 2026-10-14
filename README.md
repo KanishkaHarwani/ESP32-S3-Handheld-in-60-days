@@ -1,6 +1,6 @@
-# ESP32-S3-Handheld-in-60-days
+# ESP32-S3-Handheld-in-90-days
 
-Learn embedded C++ from scratch by building a real product: a **battery-powered ESP32-S3 handheld** with a colour display, 6 buttons, Wi-Fi and a launcher of small apps, one of which is the original **smart dashboard**. 60 days, three phases, one working checkpoint per phase.
+Learn embedded C++ from scratch by building a real product: a **battery-powered ESP32-S3 handheld** with a colour display, 6 buttons, Wi-Fi and a launcher of small apps, including live **weather**, a **flight tracker** and a **smart dashboard**. 13 weeks (about 90 days), three phases, one working checkpoint per phase.
 
 > Formerly `ESP32-S3-Smart-Dashboard-in-60-days`.
 
@@ -10,38 +10,49 @@ Most "learn embedded C++" resources either stay stuck at blinking an LED or jump
 
 ## What you end up with
 
-- A pocket-sized device: ESP32-S3, 2.0"-2.8" SPI TFT, D-pad + A + B buttons, LiPo battery with USB-C charging
-- A launcher menu with apps: Snake, a Wi-Fi scanner, a stopwatch, system/battery info, and the **Smart Dashboard** (sensor data + live API data)
+- A pocket-sized device: ESP32-S3, 2.8" SPI TFT, D-pad + A + B buttons, DHT11 temperature/humidity sensor, LiPo battery with USB-C charging
+- A launcher menu with apps:
+  - **Snake** and **stopwatch / system info** (offline apps)
+  - **Weather** (live API data) and **Flight tracker** (aircraft near you)
+  - **Wi-Fi scanner**
+  - **Smart Dashboard**: local sensor + weather + flight count on one screen
 - OTA updates, watchdogs, logging, sleep mode and power-loss recovery
-- Optional: custom KiCad PCB and 3D-printed case
+- Version 1 on a breadboard, version 2 on perfboard
+
+**Bonus, after the deadline and only if everything works:** custom KiCad PCB and a 3D-printed case.
 
 ## Prerequisites
 
 - Basic programming experience in *any* language (loops, functions, variables). No embedded or C++ experience required.
 - A computer with USB, and the patience to debug wiring before code.
 
-## Timeline (60 days)
+## Timeline
 
-Planned start: **Mon 2026-10-19**, finish: **Thu 2026-12-17**. Dates are targets; shift them if you slip and note it in `ROADMAP.md`.
+Planned start: **Mon 2026-10-19**, finish: **Sun 2027-01-17** (13 weeks). Dates are targets. If you slip, shift the dates and add a note in `ROADMAP.md`. **A phase is finished when its checkpoint works, so slip the dates rather than skip the checkpoint.**
 
-| Phase | Folder | Weeks | Ends with |
-| ----- | ------ | ----- | --------- |
-| 1. Foundations | `Phase-01-Basics/` | 1-2 | Sensor + buttons -> LED/buzzer/serial feedback loop |
-| 2. Connectivity & Architecture | `Phase-02-Libraries-IO/` | 3-5 | Live API data parsed and drawn on the TFT via a state machine |
-| 3. The Handheld (final project) | `Phase-03-Final_Project/` | 6-9 | Battery-powered handheld with launcher, apps and OTA |
+| Phase | Folder | Weeks (dates) | Ends with |
+| ----- | ------ | ------------- | --------- |
+| 1. Foundations | `Phase-01-Basics/` | 1-3 (19 Oct - 8 Nov) | DHT11 + buttons -> LED/buzzer/serial feedback loop |
+| 2. Connectivity & Architecture | `Phase-02-Libraries-IO/` | 4-8 (9 Nov - 13 Dec) | Live weather + nearby flights on the TFT via a state machine and FreeRTOS tasks |
+| 3. The Handheld (final project) | `Phase-03-Final_Project/` | 9-13 (14 Dec - 17 Jan) | Battery-powered handheld with launcher, apps and OTA, rebuilt on perfboard |
 
 Every phase ends with a **demo**: a photo or short video committed to `resources/demos/`.
 
-### Phase 1: Foundations
-Embedded C++, ESP32-S3 architecture, PlatformIO, Git basics, and the core peripherals (GPIO, UART, SPI, I2C). Runs on the Xiao ESP32S3. Checkpoint: read a sensor and buttons, give feedback with LED, buzzer and serial.
+See [`ROADMAP.md`](ROADMAP.md) for the week-by-week plan and progress tracker, and [`hardware/README.md`](hardware/README.md) for parts, pin maps and power notes.
 
-### Phase 2: Connectivity & Architecture
-Display and graphics, Wi-Fi, HTTP/HTTPS, REST and JSON, FreeRTOS, layered architecture, state machines and driver development. Checkpoint: fetch API data over Wi-Fi, parse it, render it on the TFT, driven by a state machine. Move to the ESP32-S3 DevKitC-1 here once it arrives (see `hardware/README.md`).
+## Live data (APIs)
 
-### Phase 3: The Handheld
-Hardware bring-up (buttons, display, battery divider, charging), the launcher and app framework, apps, power management, OTA and production practices. Checkpoint: the finished handheld, documented.
+| Data | Source | Notes |
+| ---- | ------ | ----- |
+| Weather | Open-Meteo | Free tier is non-commercial and requires attribution (CC BY 4.0). Limits: 600 calls/min, 5,000/hour, 10,000/day |
+| Flights | OpenSky Network (`/states/all`, bounding box) | Anonymous: 400 credits/day. Registered (OAuth2): 4,000/day. A small bounding box costs 1 credit per request |
+| Alternatives | adsb.lol and others | Check each service's current terms before relying on it |
 
-See [`ROADMAP.md`](ROADMAP.md) for the lesson-by-lesson breakdown and progress tracker.
+Polling budget matters: with anonymous OpenSky access you can only afford one flight request every ~3.6 minutes if it ran all day, so the Flight app only polls while it is open and caches results.
+
+## Secrets: never commit them
+
+This repo is public. Wi-Fi passwords, API client IDs/secrets and your coordinates go in `include/secrets.h`, which is listed in `.gitignore`. Commit a `secrets.example.h` with placeholder values instead.
 
 ## Repo structure
 
@@ -49,19 +60,22 @@ See [`ROADMAP.md`](ROADMAP.md) for the lesson-by-lesson breakdown and progress t
 ├── README.md
 ├── ROADMAP.md
 ├── LICENSE
-├── Phase-01-Basics/
-├── Phase-02-Libraries-IO/
-├── Phase-03-Final_Project/
+├── .gitignore               <- includes secrets.h
+├── Phase-01-Basics/         <- Topic-01 ... Topic-12 (Example/Starter + Example/Solution)
+├── Phase-02-Libraries-IO/   <- Topic-01 ... Topic-12 (Example/Starter + Example/Solution)
+├── Phase-03-Final_Project/  <- Lesson-01 ... Lesson-14 + src/
 ├── hardware/
-│   └── README.md        <- parts, pin map, power notes
+│   └── README.md            <- parts, pin maps, power notes
 └── resources/
-    └── demos/           <- one demo photo/video per phase
+    └── demos/               <- one demo photo/video per phase
 ```
+
+Phases 1 and 2 use `Topic-NN-Name/` folders, each with a README and an `Example/` split into `Starter/` (gaps to fill in) and `Solution/`. Phase 3 uses `Lesson-NN-Name/` folders for notes and a single `src/` for the firmware, organised as `drivers/`, `tasks/`, `net/`, `ui/`, `apps/`.
 
 ## How to use this repo
 
 1. Work through phases in order; each assumes the last is done.
-2. Each lesson folder gets a short README (concept + what to build) and example code.
+2. Try each `Starter/` before opening its `Solution/`.
 3. Build and demo the checkpoint project before moving on.
 4. Commit as you go. The repo doubles as your Git practice.
 
