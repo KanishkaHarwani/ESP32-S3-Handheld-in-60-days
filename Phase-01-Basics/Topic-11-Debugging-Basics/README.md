@@ -1,31 +1,29 @@
-# Topic 10 — Debugging Basics
+# Topic 11: Debugging Basics
 
-No new hardware or code pattern here — just habits. These are the first things to check whenever something doesn't work, before you assume the code is wrong.
+**Week 3** · No new hardware or pattern, just habits. These are the first things to check when something does not work, before you blame the code.
 
 ## The order to check things in
 
-Embedded bugs are rarely "the logic is wrong." Far more often, it's one of these, roughly in the order to suspect them:
+Embedded bugs are rarely "the logic is wrong." Suspect them in roughly this order:
 
-1. **Power** — is the device actually getting the voltage it needs?
-2. **Wiring** — is everything connected to the right pin, the right way round?
-3. **Ground** — do all your devices share a common ground?
-4. **Code** — only after the above are ruled out.
+1. **Power**: is the device getting the voltage it needs?
+2. **Wiring**: right pin, right way round?
+3. **Ground**: do all devices share a common ground?
+4. **Code**: only after the above are ruled out.
 
-Beginners (and experienced people too) tend to jump straight to "my code must be wrong" and start rewriting logic, when the actual problem is a loose jumper wire. Check hardware first — it's faster.
+People jump straight to "my code must be wrong" and rewrite logic when the real problem is a loose jumper. Check hardware first. It is faster.
 
-## Multimeter checks worth knowing
+## Multimeter checks
 
-You don't need to be a multimeter expert — three checks cover almost everything:
+Three checks cover almost everything:
 
-**Voltage** — put the probes across power and ground on your breadboard rail. You should see close to 3.3V (or 5V, depending what you're powering). If it reads 0 or something odd, that's your problem, before any code runs.
+- **Voltage**: probes across power and ground. Expect about 3.3 V (or 5 V on a 5 V rail). If it reads 0 or something odd, that is your problem before any code runs.
+- **Continuity** (beep mode): checks whether two points are really connected. Good for broken jumpers and for confirming how a breadboard row connects.
+- **Resistance**: confirms an unmarked resistor's value. Measure with the part out of the circuit.
 
-**Continuity** (the beep mode) — checks if two points are actually electrically connected. Great for verifying a jumper wire isn't broken, or that a breadboard row is actually connected the way you think it is.
-
-**Resistance** — mostly useful for confirming an unmarked resistor's value before you use it (color bands can be hard to read, especially on tiny ones).
+Never measure resistance on a powered circuit.
 
 ## Serial print debugging
-
-This is your main tool from here on (Topic 07). When something isn't behaving:
 
 ```cpp
 Serial.println("reached setup()");
@@ -33,20 +31,44 @@ Serial.printf("sensor value: %d\n", value);
 Serial.println("about to call risky_function()");
 ```
 
-Print *before and after* anything you suspect. If a print statement never shows up, you now know execution isn't reaching that line — that alone rules out half the possible causes.
+Print *before and after* anything you suspect. If a print never appears, execution is not reaching that line, which rules out half the possible causes. Print the **value and its unit**, not just "here."
 
-## Common beginner mistakes worth remembering
+## Common beginner mistakes
 
-- **`INPUT_PULLUP` logic is inverted** — pressed usually reads `LOW`, not `HIGH` (Topic 06). Easy to forget, easy to "fix" by rewriting logic that was actually already correct.
-- **Wrong pin numbering** — silkscreen labels on a board (like `D0`) don't always match the underlying GPIO number used in some libraries. When in doubt, check the board's official pinout diagram.
-- **Floating input pins** — an unconnected digital input can read random noise. If a button "randomly" triggers, check you're using a pull-up/pull-down and that wiring is actually solid.
-- **Baud rate mismatch** — garbled serial monitor output almost always means `Serial.begin()` and `monitor_speed` in `platformio.ini` don't match (Topic 07).
-- **Forgetting common ground** — if you're connecting the ESP32-S3 to an external power source or a second board, and things behave strangely, check they share a ground connection.
+- **`INPUT_PULLUP` logic is inverted.** Pressed reads `LOW` (Topic 06).
+- **Wrong pin numbering.** Silkscreen labels like `D0` are not GPIO numbers. Use the board's official pinout (Topic 03).
+- **Floating input pins.** A button that "randomly" triggers usually lacks a pull-up or has a poor connection.
+- **Baud rate mismatch.** Garbled serial output means `Serial.begin()` and `monitor_speed` differ (Topic 07).
+- **No common ground** between two power sources or boards.
+- **Reading the DHT11 too often.** Faster than once per second gives `NaN` (Topic 10).
+- **Pin conflicts.** The pot on D8 clashes with SPI SCK (Topic 08).
+- **A charge-only USB cable.** The board powers up but never appears for upload.
 
-## A habit worth building
+## Break it on purpose
 
-When something breaks, resist the urge to change five things at once. Change one thing, test, observe — then decide the next change based on what you actually saw. It's slower per-step but dramatically faster overall, since you're not guessing which of five changes fixed (or broke) something.
+The fastest way to learn failure signatures is to cause them once, deliberately, while you know the code is good. Do each one, note what you see, then fix it:
+
+| Break this | What you should observe |
+| ---------- | ----------------------- |
+| Unplug the DHT11 data wire | `NaN` reads and "read failed" |
+| Swap SDA and SCL | Bus scan finds nothing |
+| Change `Serial.begin(9600)` | Garbled monitor output |
+| Remove the button's GND wire | Button never registers, or triggers randomly |
+| Remove the LED's resistor leg | LED off, and no other symptoms |
+| Disconnect GND on a sensor | Weird readings or total silence |
+
+Write the symptom next to each in your notes. You will recognise them instantly later.
+
+## One change at a time
+
+When something breaks, resist changing five things at once. Change one thing, test, observe, then decide the next step from what you saw. It is slower per step and much faster overall.
+
+## Check yourself
+
+- What are the four things to check, in order?
+- What does a missing serial print tell you?
+- Which deliberate break was hardest to diagnose?
 
 ## What's next
 
-Topic 11 is the Phase 1 checkpoint project — it pulls together GPIO, I²C, and everything above into one working build. This is exactly where these debugging habits get their first real workout.
+Topic 12 is the Phase 1 checkpoint. This is where these habits get their first real workout.

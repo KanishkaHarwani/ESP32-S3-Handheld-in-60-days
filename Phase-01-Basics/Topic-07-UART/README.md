@@ -1,36 +1,32 @@
-# Topic 07 — UART
+# Topic 07: UART and the Serial Monitor
 
-UART (Universal Asynchronous Receiver/Transmitter) is the simplest way two devices exchange data over wires — and on your dev board, it's also your window into what the chip is actually doing. From here on, `Serial` is how you debug everything in this repo.
+**Week 2** · UART is the simplest way two devices exchange data over wires. On your board it is also your window into what the chip is doing. From here on, `Serial` is how you debug everything.
 
-## Baud rate: both sides need to agree
+## Baud rate: both sides must agree
 
-UART has no clock wire — both devices just agree in advance on how fast bits are being sent, in bits per second (**baud rate**). If they don't match, you get garbage characters instead of readable text.
+UART has no clock wire. Both ends agree in advance on the speed in bits per second (the **baud rate**). If they do not match, you get garbage characters.
 
 ```cpp
-Serial.begin(115200);  // must match monitor_speed in platformio.ini
+Serial.begin(115200);   // must match monitor_speed in platformio.ini
 ```
 
-That's why `platformio.ini` (Topic 04) has `monitor_speed = 115200` — it has to match what you call `Serial.begin()` with in code, or the serial monitor shows nonsense.
-
-## Printing — your primary debugging tool
+## Printing: your primary debug tool
 
 ```cpp
-Serial.println("Hello from the ESP32-S3");   // text + newline
+Serial.println("Hello from the ESP32-S3");
 Serial.print("Reading: ");
-Serial.println(42);                           // numbers work directly
-Serial.printf("Temp: %.1fC\n", 23.5);          // formatted, like C's printf
+Serial.println(42);
+Serial.printf("Temp: %.1f C\n", 23.5);     // formatted, like C's printf
 ```
 
-Before you have a display, before you have Wi-Fi — `Serial.println` is how you find out if your code is even reaching a given line. Sprinkling print statements through code you're not sure about is a completely normal, professional debugging technique, not a shortcut.
+Before you have a display or Wi-Fi, `Serial.println` is how you learn whether your code even reaches a line. Printing through suspect code is normal, professional debugging.
 
-## Reading input — the board can listen too
-
-Serial isn't just output. You can type into the serial monitor and have your program react:
+## Reading input: the board can listen too
 
 ```cpp
 if (Serial.available() > 0) {
   String command = Serial.readStringUntil('\n');
-  command.trim();  // remove trailing whitespace/newline characters
+  command.trim();                 // strip trailing whitespace/newline
 
   if (command == "on") {
     // ...
@@ -38,20 +34,41 @@ if (Serial.available() > 0) {
 }
 ```
 
-`Serial.available()` tells you if there's unread incoming data waiting — always check this before trying to read, or you'll block waiting for input that isn't there yet.
+Check `Serial.available()` first, or you may block waiting for input that is not there. (`String` is fine for this small use. See Topic 02 for why to be careful with it in tight loops.)
 
-## Non-blocking timing recap
-
-You'll want to print status periodically without freezing everything else with `delay()`. This is the same `millis()` pattern from Topic 06's debounce:
+## Non-blocking status printing
 
 ```cpp
-uint32_t lastPrint = 0;
-if (millis() - lastPrint > 2000) {
+static uint32_t lastPrint = 0;
+if (millis() - lastPrint >= 2000) {
   lastPrint = millis();
   Serial.println("still alive");
 }
 ```
 
+## A tiny command parser
+
+Commands with a number (`threshold 30`) are common in this repo:
+
+```cpp
+if (command.startsWith("threshold ")) {
+  float value = command.substring(10).toFloat();
+  // validate, then apply
+}
+```
+
+Always validate input. `toFloat()` returns 0 for text it cannot parse.
+
+## About D6 and D7
+
+On the Xiao, D6/D7 are the hardware UART pins (`Serial1`). You use them for buttons in Phase 1, which is fine because the serial monitor goes over USB, not those pins.
+
+## Check yourself
+
+- What happens if `Serial.begin()` and `monitor_speed` disagree?
+- Why check `Serial.available()` before reading?
+- How would you add a `reset` command?
+
 ## What's next
 
-The example combines both directions: the board prints a periodic status message, and accepts simple text commands to control an LED. Topic 08 covers SPI conceptually, then Topic 09 gets you reading a real I²C sensor and printing its values over exactly this UART connection.
+The example prints a periodic status message and accepts text commands to control an LED. Topic 08 covers SPI, then Topic 09 reads a real I²C sensor and prints it over this same connection.

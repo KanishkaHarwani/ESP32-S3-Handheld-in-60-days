@@ -1,44 +1,76 @@
-# Topic 03 — ESP32-S3 Architecture
+# Topic 03: ESP32-S3 Architecture
 
-A quick tour of the chip you're actually programming. No code here — just enough of a mental map so later topics ("this runs on Core 1", "that lives in flash") make sense instead of feeling like magic.
+**Week 2** · No code. A mental map of the chip, so later topics ("this runs on core 1", "that lives in flash") make sense instead of feeling like magic.
 
 ## Two cores, not one
 
-The ESP32-S3 has **two CPU cores** (Xtensa LX7, up to 240MHz each). Most simple Arduino-style sketches only ever use one core without you noticing — but this matters a lot later:
+The ESP32-S3 has **two CPU cores** (Xtensa LX7, up to 240 MHz each). Simple Arduino sketches use one core without you noticing, but this matters later:
 
-- **Phase 2 (FreeRTOS)** — you'll deliberately run different tasks (sensor reading, networking, display) so they can genuinely run in parallel instead of competing for time on a single core.
-- Wi-Fi and Bluetooth radios lean on this dual-core setup internally, which is part of why the ESP32 family became the default choice for connected projects.
+- **Phase 2 (FreeRTOS):** you will run separate tasks (sensor, networking, display) that can genuinely run in parallel.
+- The Wi-Fi and Bluetooth stacks use the dual-core design internally.
 
 ## Memory: three things to know
 
-You don't need deep memory-management skills for this repo, but recognizing these terms will save you a lot of confused debugging later:
+| Type | What it is | Xiao ESP32S3 | DevKitC-1 N16R8 |
+| ---- | ---------- | ------------ | --------------- |
+| **Flash** | Compiled program; persists after power-off | 8 MB | 16 MB |
+| **SRAM** | Fast working memory: variables, stacks | ~512 KB | ~512 KB |
+| **PSRAM** | Extra, slower RAM for big buffers (framebuffers, JSON) | 8 MB | 8 MB |
 
-| Type | What it is | Rough size (Xiao ESP32S3) |
-|---|---|---|
-| **Flash** | Where your compiled program lives — persists after power-off | 8MB |
-| **RAM (SRAM)** | Working memory — variables, the stack, anything "live" while running | ~512KB |
-| **PSRAM** | Extra RAM some boards add for memory-hungry tasks (e.g. camera buffers, big display framebuffers) | 8MB (Xiao ESP32S3 Sense variant; check your specific board) |
+Check your exact board's datasheet, since variants differ.
 
-The key takeaway: **RAM is small and fixed.** Unlike your laptop, there's no swap space to fall back on — this is why Topic 02's fixed-width types (`uint8_t` instead of assuming `int`) actually matters here, not just as a style preference.
+**RAM is small and fixed.** There is no swap. This is why fixed-width types and avoiding runtime allocation matter.
 
-## Peripherals you'll actually use in this repo
+### A rough memory map
 
-The chip exposes dedicated hardware for talking to the outside world — these aren't "features," they're the whole reason embedded chips look different from a general-purpose CPU:
+```
+Flash  ->  your program (code), constants, filesystem/NVS
+SRAM   ->  global variables, task stacks, heap
+PSRAM  ->  large buffers you place there on purpose (Phase 3)
+```
 
-- **GPIO** — general-purpose pins, digital in/out (Topic 06)
-- **UART** — serial communication, your main debugging tool (Topic 07)
-- **SPI** — fast peripheral bus, used for the TFT and E-ink displays (Phase 2)
-- **I²C** — simpler two-wire bus, used for sensors like your temp/humidity module (Topic 09)
-- **Wi-Fi / Bluetooth radios** — built into the chip, this is what makes the "Smart Dashboard" networked at all (Phase 2)
+## Peripherals you will use
 
-## Why ESP32-**S3** specifically
+These are dedicated hardware blocks, not "features":
 
-The S3 variant adds a few things over the original ESP32 that matter for this repo:
+- **GPIO**: digital in/out and PWM (Topic 06)
+- **ADC**: reads analogue voltages, e.g. a potentiometer or battery (Topic 06)
+- **UART**: serial communication and your main debug tool (Topic 07)
+- **SPI**: fast bus for the TFT and SD card (Topic 08, Phase 2)
+- **I²C**: simple two-wire bus for sensors (Topic 09)
+- **Wi-Fi / Bluetooth**: built in (Phase 2)
 
-- **USB OTG support** — the Xiao ESP32S3 can appear as a USB device directly (no separate USB-to-serial chip needed on some boards), which simplifies flashing and debugging.
-- **More capable AI/vector instructions** — not something this repo uses directly, but it's why S3 boards are popular for camera/ML side-projects if you explore beyond the dashboard.
-- It's simply the current, well-supported chip in the family — better long-term library and tooling support than older ESP32 variants.
+## The Xiao ESP32S3 pinout
+
+The Xiao exposes **11 usable GPIOs, labelled D0-D10**. The `D` labels are not the same as GPIO numbers, so always use the `D` names in code.
+
+| Label | Common use in this repo |
+| ----- | ----------------------- |
+| D0 / D1 | LEDs (Phase 1), TFT CS / DC (Phase 2) |
+| D2 | Buzzer (Phase 1), TFT RST (Phase 2) |
+| D3 | DHT11 (Phase 1), TFT backlight (Phase 2) |
+| D4 / D5 | I²C SDA / SCL (Phase 1) |
+| D6 / D7 | Buttons A / B (also UART pins; fine, since the monitor uses USB) |
+| D8 / D9 / D10 | SPI SCK / MISO / MOSI; also the pot (D8) in Phase 1 |
+
+See `../../hardware/README.md` for full wiring tables. Eleven pins is why Phase 3 moves to the DevKitC-1: TFT + 6 buttons + SD does not fit.
+
+## Strapping and reserved pins (DevKitC-1)
+
+On the bigger board some pins are special: 0, 3, 45, 46 (strapping, they set boot mode), 19/20 (USB), 26-32 (flash), 33-37 (octal PSRAM), 48 (onboard RGB LED). You will avoid these in Phase 3.
+
+## Why the S3 specifically
+
+- **Native USB**: flashing and serial over the board's USB port, no separate USB-serial chip needed.
+- Vector instructions for ML workloads (not used here).
+- It is a current, well-supported chip with good tooling.
+
+## Check yourself
+
+- Where does your program live when power is off?
+- Why can the Xiao not run the final handheld?
+- Why does "D6" not equal "GPIO6"?
 
 ## What's next
 
-Topic 04 gets PlatformIO installed and configured so you can actually compile and flash code onto this chip — turning everything above from theory into something you can watch happen on real hardware.
+Topic 06 starts using these pins for real.
