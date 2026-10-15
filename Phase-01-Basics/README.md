@@ -1,32 +1,57 @@
-# Phase 1 — Foundations
+# Phase 1: Foundations
 
-Get comfortable with embedded C++, the ESP32-S3, and the core peripherals every later phase depends on. By the end, you'll be reading a sensor and driving output based on it — the smallest possible version of "device senses something, device reacts."
+**Weeks 1-3 (19 Oct - 8 Nov 2026)**
+**Board:** Seeed Xiao ESP32S3
+**Parts:** breadboard, LEDs, buttons, buzzer, DHT11, potentiometer, multimeter
 
-**Board:** Xiao ESP32S3
-**Also needed:** breadboard, jumper wires, resistors, LEDs, pushbuttons, buzzer, temp/humidity sensor, multimeter
+## Goal
 
-## How this phase is organized
-
-Each topic below is its own folder. Topics with hands-on code have an `Example/` folder inside, split into `Starter/` (a skeleton with gaps to fill in) and `Solution/` (the completed reference version) — try the Starter first before looking at the Solution.
+Get from "never touched a microcontroller" to reading sensors, driving outputs and debugging a small program on real hardware. You finish with a working feedback loop: DHT11 + buttons controlling LED, buzzer and serial output.
 
 ## Topics
 
-| # | Topic | Has Example |
-|---|---|---|
-| 01 | [Embedded Systems Intro](Topic-01-Embedded-Systems-Intro/README.md) | No |
-| 02 | [Embedded C++ Essentials](Topic-02-Embedded-CPP-Essentials/README.md) | Yes |
-| 03 | [ESP32-S3 Architecture](Topic-03-ESP32S3-Architecture/README.md) | No |
-| 04 | [PlatformIO Toolchain](Topic-04-PlatformIO-Toolchain/README.md) | Yes |
-| 05 | [Git & GitHub Basics](Topic-05-Git-GitHub-Basics/README.md) | No |
-| 06 | [GPIO](Topic-06-GPIO/README.md) | Yes |
-| 07 | [UART](Topic-07-UART/README.md) | Yes |
-| 08 | [SPI Concepts](Topic-08-SPI-Concepts/README.md) | No |
-| 09 | [I²C](Topic-09-I2C/README.md) | Yes |
-| 10 | [Debugging Basics](Topic-10-Debugging-Basics/README.md) | No |
-| 11 | [Checkpoint Project](Topic-11-Checkpoint-Project/README.md) | Yes |
+| # | Topic | Week | Example |
+| - | ----- | ---- | ------- |
+| 01 | [Embedded Systems Intro](Topic-01-Embedded-Systems-Intro/) | 1 | - |
+| 02 | [Embedded C++ Essentials](Topic-02-Embedded-CPP-Essentials/) | 1 | Starter + Solution |
+| 03 | [ESP32-S3 Architecture](Topic-03-ESP32S3-Architecture/) | 2 | - |
+| 04 | [PlatformIO Toolchain](Topic-04-PlatformIO-Toolchain/) | 1 | Starter + Solution |
+| 05 | [Git and GitHub Basics](Topic-05-Git-GitHub-Basics/) | 1 | - |
+| 06 | [GPIO](Topic-06-GPIO/) | 2 | Starter + Solution |
+| 07 | [UART](Topic-07-UART/) | 2 | Starter + Solution |
+| 08 | [SPI Concepts](Topic-08-SPI-Concepts/) | 3 | Loopback test |
+| 09 | [I2C](Topic-09-I2C/) | 3 | Starter + Solution |
+| 10 | [DHT11 Sensor](Topic-10-DHT11-Sensor/) | 3 | Starter + Solution |
+| 11 | [Debugging Basics](Topic-11-Debugging-Basics/) | 3 | - |
+| 12 | [Checkpoint Project](Topic-12-Checkpoint-Project/) | 3 | Starter + Solution |
 
-## Checkpoint project
+## Study order
 
-Topic 11 ties the phase together: read the temp/humidity sensor over I²C, and react on the LEDs/buzzer based on a threshold. Small in scope, but it touches GPIO, I²C, and basic control flow — everything this phase covered.
+Folder numbers are not the order you work in. Follow `ROADMAP.md`:
 
-Once it works and you understand every line of it, move to `phase2-connectivity-architecture/`.
+- **Week 1:** 01 -> 04 -> 02 -> 05 (you need the toolchain before the C++ exercises)
+- **Week 2:** 03 -> 06 -> 07
+- **Week 3:** 08 -> 09 -> 10 -> 11 -> 12
+
+## Demos
+
+- Week 1: blink + serial "hello" committed
+- Week 2: buttons + LED + PWM fade
+- Week 3: short video of the checkpoint
+
+Save demo photos/videos to `../resources/demos/`.
+
+## Checkpoint (finishes the phase)
+
+**Topic 12:** read the DHT11, use two buttons to change behaviour, and give feedback through the LED, buzzer and serial monitor. A failed DHT11 read must be handled, not ignored. Do not start Phase 2 until this works.
+
+## Wiring
+
+See `../hardware/README.md` ("Phase 1 wiring"). Verify against the Xiao ESP32S3 pinout before powering anything. Power the DHT11 from 3.3 V.
+
+## How to work
+
+1. Read the topic README.
+2. Try `Example/Starter/` before opening `Example/Solution/`.
+3. Commit after each topic.
+4. Tick the item off in `ROADMAP.md`.

@@ -1,58 +1,87 @@
-# Phase 3 — Smart Dashboard (Final Project)
+# Phase 3: The Handheld
 
-Everything from Phase 1 and 2 comes together here: sensors, network data, and a display, run as proper FreeRTOS-managed firmware — with the practices that make it something you'd actually trust to run unattended.
+**Weeks 9-13 (14 Dec 2026 - 17 Jan 2027)**
+**Board:** ESP32-S3 DevKitC-1 (N16R8, 16 MB flash + 8 MB PSRAM)
+**Parts:** 2.8" TFT, 6 buttons, DHT11, LiPo (protected), USB-C charger with power path, optional SD card
 
-**Board:** Xiao ESP32S3
-**Also needed:** everything from Phase 1 & 2, plus optionally: SD card (logging), BNO085 IMU, LED strip (status indicator), Raspberry Pi (optional network host)
+## Goal
 
-## What you're building
-
-A dashboard device that:
-- Reads at least one local sensor (temp/humidity, and optionally IMU)
-- Pulls at least one data source from the network (API call from Phase 2, or your own small backend)
-- Displays both on the TFT and/or E-ink screen, laid out clearly
-- Runs as separate FreeRTOS tasks (sensing, networking, display) coordinated through a state machine
-- Recovers gracefully from Wi-Fi drops, API failures, or a disconnected sensor — instead of hanging or crashing
-- Can be updated with new firmware over the air, without a USB cable
-
-The exact data you display is up to you — weather + local sensor readings, a stock ticker, GitHub stats, whatever's interesting enough that you'd actually leave it running on your desk.
+Build the finished product: a battery-powered handheld with a launcher and small apps, OTA updates, watchdogs, logging, sleep and power-loss recovery. Version 1 runs on a breadboard; version 2 is rebuilt on perfboard.
 
 ## Lessons
 
-1. **Project architecture**
-   Decide your data sources, display layout, and update cadence before writing code. Sketch the block diagram: what task owns what data, what triggers a redraw.
+| # | Lesson | Week |
+| - | ------ | ---- |
+| 01 | [Hardware Bring-up](Lesson-01-Hardware-Bring-up/) | 9 |
+| 02 | [Power and Battery](Lesson-02-Power-and-Battery/) | 9 |
+| 03 | [Backlight PWM and Double Buffering](Lesson-03-Backlight-and-Double-Buffering/) | 9 |
+| 04 | [App Framework and Launcher](Lesson-04-App-Framework-Launcher/) | 10 |
+| 05 | [Offline Apps (Snake, Stopwatch, System Info)](Lesson-05-Offline-Apps/) | 10 |
+| 06 | [Network Service and Caching](Lesson-06-Network-Service-and-Caching/) | 11 |
+| 07 | [Settings and Config](Lesson-07-Settings-and-Config/) | 12 |
+| 08 | [OTA Updates](Lesson-08-OTA-Updates/) | 12 |
+| 09 | [Power Management](Lesson-09-Power-Management/) | 12 |
+| 10 | [Error Handling and Logging](Lesson-10-Error-Handling-and-Logging/) | 12 |
+| 11 | [SD Card Logging](Lesson-11-SD-Card-Logging/) (optional) | 12 |
+| 12 | [Perfboard v2](Lesson-12-Perfboard-v2/) | 13 |
+| 13 | [Stress Tests](Lesson-13-Stress-Tests/) | 13 |
+| 14 | [Final README and Build Log](Lesson-14-Final-README-and-Build-Log/) | 13 |
 
-2. **Integration**
-   Bring Phase 1+2 pieces together under FreeRTOS: a sensing task, a networking task, a display task, communicating via queues — not global variables everywhere.
+## Apps
 
-3. **OTA updates**
-   Implement firmware-over-the-air updates, basic versioning, and a rollback strategy so a bad update doesn't brick the device.
+| App | Type | Week |
+| --- | ---- | ---- |
+| Snake | offline | 10 |
+| Stopwatch + system/battery info | offline | 10 |
+| Weather (Open-Meteo) | network | 11 |
+| Flight tracker (OpenSky) | network | 11 |
+| Wi-Fi scanner | network | 11 |
+| Smart Dashboard (DHT11 + weather + flight count) | network | 11 |
 
-4. **Production firmware practices**
-   Structured error handling, a config management approach (Wi-Fi credentials, API keys — not hardcoded in `main.cpp`), a real logging strategy, watchdog timers, and recovering cleanly from power loss.
+## Firmware layout
 
-5. **Optional: local logging**
-   Log sensor/API data to the SD card as a history/backup — useful if the network drops or you want a record over time.
+```
+Phase-03-Final_Project/
+├── include/
+│   ├── secrets.h            <- git-ignored
+│   └── secrets.example.h
+├── platformio.ini
+└── src/
+    ├── drivers/             <- buttons, display, DHT11, battery, SD
+    ├── tasks/               <- FreeRTOS tasks
+    ├── net/                 <- shared network service, cache, polling budget
+    ├── ui/                  <- launcher, widgets, theme
+    └── apps/                <- snake, stopwatch, weather, flights, wifi_scan, dashboard
+```
 
-6. **Debugging & polish**
-   Deliberately stress-test: kill the Wi-Fi mid-run, feed it a malformed API response, disconnect the sensor. Confirm the device degrades gracefully instead of hanging.
+Lesson folders hold notes; all firmware lives in `src/`.
 
-7. **Documentation**
-   Write up the final build: architecture diagram, wiring, what you'd do differently. This becomes the closing entry in the repo.
+## Demos
 
-## Optional extensions
+- Week 9: 6-button test + battery percentage on the TFT
+- Week 10: launcher with three apps
+- Week 11: all network apps running from the launcher
+- Week 12: wireless firmware update
+- Week 13: final video of the handheld running
 
-- Raspberry Pi as a network host — running a small backend, MQTT broker, or dashboard aggregator that your ESP32-S3 pulls from
-- BNO085 IMU as an additional data source (orientation/motion)
-- Addressable LED strip as a status indicator (e.g. red = error state, green = healthy)
+## Go / no-go
 
-## Done when
+**Sun 10 Jan:** if the breadboard v1 is stable, start the perfboard build the following week. If not, spend Week 13 on stability and move the perfboard to Bonus.
 
-- It runs continuously without manual intervention
-- A dropped Wi-Fi connection or bad API response doesn't hang the device
-- You can push an OTA update and it applies successfully
-- The `src/` folder and this README reflect the final, working build
+## Pin map and power
 
-## Source
+See `../hardware/README.md` ("Phase 3 proposed pin map" and "Power notes"). Avoid strapping pins (0, 3, 45, 46), USB (19/20), flash (26-32), octal PSRAM (33-37) and the onboard RGB LED (48).
 
-Final project code lives in `src/`, organized by the architecture you defined in lesson 1 (e.g. `drivers/`, `tasks/`, `net/`, `ui/`) rather than one flat file.
+Safety: use a protected LiPo, a proper charger IC with power path, check polarity twice, and measure with the multimeter before connecting the battery for the first time.
+
+## Secrets
+
+Never hardcode Wi-Fi passwords, API credentials or coordinates. Store them in NVS via the settings screen (Lesson 07); use `secrets.h` only for build-time defaults, and keep it out of Git.
+
+## Checkpoint (finishes the phase)
+
+A battery-powered handheld on perfboard that runs the launcher and all apps, updates over the air, and passes the stress tests: Wi-Fi drop, API failure, DHT11 disconnect and low battery.
+
+## Bonus (only after everything above works)
+
+Custom KiCad PCB, 3D-printed case, IMU tilt controls, I2S audio, haptics, and more apps (Pong, Tetris, ISS tracker, stocks ticker).
